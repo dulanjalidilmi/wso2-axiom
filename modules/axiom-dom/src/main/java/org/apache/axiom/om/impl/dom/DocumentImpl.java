@@ -19,15 +19,7 @@
 
 package org.apache.axiom.om.impl.dom;
 
-import org.apache.axiom.om.OMConstants;
-import org.apache.axiom.om.OMContainer;
-import org.apache.axiom.om.OMDocument;
-import org.apache.axiom.om.OMElement;
-import org.apache.axiom.om.OMException;
-import org.apache.axiom.om.OMFactory;
-import org.apache.axiom.om.OMNode;
-import org.apache.axiom.om.OMOutputFormat;
-import org.apache.axiom.om.OMXMLParserWrapper;
+import org.apache.axiom.om.*;
 import org.apache.axiom.om.impl.MTOMXMLStreamWriter;
 import org.apache.axiom.om.impl.OMDocumentImplUtil;
 import org.apache.axiom.om.impl.dom.factory.OMDOMFactory;
@@ -48,6 +40,7 @@ import org.w3c.dom.NodeList;
 import org.w3c.dom.ProcessingInstruction;
 import org.w3c.dom.Text;
 
+import javax.xml.XMLConstants;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 import java.io.OutputStream;
@@ -167,17 +160,26 @@ public class DocumentImpl extends ParentNode implements Document, OMDocument {
 
     public Attr createAttributeNS(String namespaceURI, String qualifiedName)
             throws DOMException {
-        String localName = DOMUtil.getLocalName(qualifiedName);
-        String prefix = DOMUtil.getPrefix(qualifiedName);
-
-        if (!OMConstants.XMLNS_NS_PREFIX.equals(localName)) {
-            this.checkQName(prefix, localName);
-        } else {
-            return this.createAttribute(localName);
+        if (null == namespaceURI) {
+            System.out.println("null");
         }
 
-        return new AttrImpl(this, localName, new NamespaceImpl(
-                namespaceURI, prefix), this.factory);
+        String localName = DOMUtil.getLocalName(qualifiedName);
+        String prefix = DOMUtil.getPrefix(qualifiedName);
+        DOMUtil.validateAttrNamespace(namespaceURI, localName, prefix);
+
+        if (!XMLConstants.XMLNS_ATTRIBUTE.equals(localName)) {
+            this.checkQName(prefix, localName);
+        }
+
+        OMNamespace namespace;
+        if (namespaceURI == null) {
+            namespace = null;
+        } else {
+            namespace = new NamespaceImpl(namespaceURI,
+                    prefix == null && !XMLConstants.XMLNS_ATTRIBUTE_NS_URI.equals(namespaceURI) ? "" : prefix);
+        }
+        return new AttrImpl(this, localName, namespace, this.factory);
     }
 
     public CDATASection createCDATASection(String arg0) throws DOMException {
@@ -456,23 +458,9 @@ public class DocumentImpl extends ParentNode implements Document, OMDocument {
      * @param local  local part of qualified name
      */
     protected final void checkQName(String prefix, String local) {
-
-        // check that both prefix and local part match NCName
-        boolean validNCName = (prefix == null || XMLChar.isValidNCName(prefix))
-                && XMLChar.isValidNCName(local);
-
-        if (!validNCName) {
-            // REVISIT: add qname parameter to the message
-            String msg = DOMMessageFormatter.formatMessage(
-                    DOMMessageFormatter.DOM_DOMAIN, DOMException.INVALID_CHARACTER_ERR,
-                    null);
-            throw new DOMException(DOMException.INVALID_CHARACTER_ERR, msg);
-        }
-
-        if (prefix == null || prefix.equals("")) {
-            String msg = DOMMessageFormatter.formatMessage(
-                    DOMMessageFormatter.DOM_DOMAIN, DOMException.NAMESPACE_ERR, null);
-            throw new DOMException(DOMException.NAMESPACE_ERR, msg);
+        if ((prefix != null && !XMLChar.isValidNCName(prefix))
+                || !XMLChar.isValidNCName(local)) {
+            throw new DOMException(DOMException.INVALID_CHARACTER_ERR, "ss");
         }
     }
 

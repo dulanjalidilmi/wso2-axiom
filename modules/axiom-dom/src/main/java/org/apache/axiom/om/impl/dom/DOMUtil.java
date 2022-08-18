@@ -19,6 +19,10 @@
 
 package org.apache.axiom.om.impl.dom;
 
+import org.w3c.dom.DOMException;
+
+import javax.xml.XMLConstants;
+
 /** Utility class for the OM-DOM implementation */
 class DOMUtil {
 
@@ -26,6 +30,34 @@ class DOMUtil {
         // TODO check for valid characters
         // throw new UnsupportedOperationException("TODO");
         return true;
+    }
+
+    public static void validateAttrNamespace(String namespaceURI, String localName, String prefix) {
+        // TODO check for valid namespace
+        /**
+         * if the qualifiedName has a prefix and the namespaceURI is null, if
+         * the qualifiedName has a prefix that is "xml" and the namespaceURI is
+         * different from " http://www.w3.org/XML/1998/namespace", or if the
+         * qualifiedName, or its prefix, is "xmlns" and the namespaceURI is
+         * different from " http://www.w3.org/2000/xmlns/".
+         */
+        String msg = "exception..";
+
+        if (namespaceURI == null) {
+            if (localName.equals(XMLConstants.XMLNS_ATTRIBUTE)) {
+
+                throw new DOMException(DOMException.NAMESPACE_ERR, msg);
+            }
+        } else if (namespaceURI.equals(XMLConstants.XMLNS_ATTRIBUTE_NS_URI)) {
+            if (prefix != null && !prefix.equals(XMLConstants.XMLNS_ATTRIBUTE)
+                    || prefix == null && !localName.equals(XMLConstants.XMLNS_ATTRIBUTE)) {
+                throw new DOMException(DOMException.NAMESPACE_ERR, msg);
+            }
+        } else {
+            if (prefix.equals(XMLConstants.XMLNS_ATTRIBUTE)) {
+                throw new DOMException(DOMException.NAMESPACE_ERR, msg);
+            }
+        }
     }
 
     /**

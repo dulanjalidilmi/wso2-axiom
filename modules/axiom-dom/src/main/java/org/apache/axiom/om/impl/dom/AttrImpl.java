@@ -50,7 +50,7 @@ public class AttrImpl extends NodeImpl implements OMAttribute, Attr {
     private String attrType;
 
     /** Attribute namespace */
-    private NamespaceImpl namespace;
+    private OMNamespace namespace;
 
     /** Flag to indicate whether this attr is used or not */
     private boolean used;
@@ -95,9 +95,9 @@ public class AttrImpl extends NodeImpl implements OMAttribute, Attr {
 
     public AttrImpl(DocumentImpl ownerDocument, String localName,
                     OMNamespace namespace, OMFactory factory) {
-        super(ownerDocument, factory);
+        this(ownerDocument, factory);
         this.attrName = localName;
-        this.namespace = (NamespaceImpl) namespace;
+        this.namespace = namespace;
         this.attrType = OMConstants.XMLATTRTYPE_CDATA;
     }
 
